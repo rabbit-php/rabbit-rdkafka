@@ -8,6 +8,7 @@ use rabbit\contract\InitInterface;
 use rabbit\exception\InvalidArgumentException;
 use rabbit\exception\InvalidConfigException;
 use rabbit\helper\ArrayHelper;
+use rabbit\helper\UrlHelper;
 use RdKafka\Conf;
 use RdKafka\Consumer;
 use RdKafka\ConsumerTopic;
@@ -187,7 +188,8 @@ class KafkaManager implements InitInterface
             }
             $name = (string)$name;
             $conf = new Conf();
-            $conf->set('bootstrap.servers', is_array($dsn) ? implode(',', $dsn) : $dsn);
+            $dsn = UrlHelper::dns2IP(is_array($dsn) ? $dsn : [$dsn]);
+            $conf->set('bootstrap.servers', implode(',', $dsn));
             foreach ($set as $key => $value) {
                 $conf->set((string)$key, (string)$value);
             }
