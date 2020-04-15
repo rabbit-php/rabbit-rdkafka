@@ -298,7 +298,7 @@ class KafkaManager implements InitInterface
     public function product(Topic $topic, Producer $producer, int $partition, int $msgflags, string $payload, string $key = null)
     {
         $topic->produce($partition, $msgflags, $payload);
-        $product->poll(0);
-        $product->flush(1000);
+        $producer->poll(0);
+        $producer->flush(1000);
     }
 }
