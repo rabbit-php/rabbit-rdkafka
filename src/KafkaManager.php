@@ -49,11 +49,20 @@ class KafkaManager implements InitInterface
     protected $configs = [];
 
     /**
-     * Manager constructor.
+     * KafkaManager constructor.
+     * @param array $configs
      */
     public function __construct(array $configs = [])
     {
-        $this->configs = $configs;
+        $this->add($configs);
+    }
+
+    /**
+     * @param array $configs
+     */
+    public function add(array $configs = [])
+    {
+        $this->configs = array_merge($this->configs, $configs);
         register_shutdown_function(function () {
             foreach ($this->producers as $producer) {
                 $producer[self::ITEM_ENGINE]->flush(10000);
@@ -248,5 +257,48 @@ class KafkaManager implements InitInterface
             $this->$type[$name][self::ITEM_TOPICS][$topic] = $topicModel;
         }
         return $topicModel;
+    }
+
+    /**
+     * @param KafkaConsumer $consumer
+     * @param callable $callback
+     * @param float $sleep
+     * @throws \RdKafka\Exception
+     */
+    public function consumeWithKafkaConsumer(KafkaConsumer $consumer, callable $callback, float $sleepMs = 200)
+    {
+        while (true) {
+            $message = $consumer->consume(0);
+            if (!empty($message)) {
+                switch ($message->err) {
+                    case RD_KAFKA_RESP_ERR_NO_ERROR:
+                        call_user_func($callback, $message);
+                        $consumer->commitAsync();
+                        break;
+                    case RD_KAFKA_RESP_ERR__PARTITION_EOF:
+                    case RD_KAFKA_RESP_ERR__TIMED_OUT:
+                        \Co::sleep((float)$sleepMs / 1000);
+                        break;
+                    default:
+                        throw new \Exception($message->errstr(), $message->err);
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * @param string $name
+     * @param string $topic
+     * @param int $partition
+     * @param int $msgflags
+     * @param string $payload
+     * @param string|null $key
+     */
+    public function product(Topic $topic, Producer $producer, int $partition, int $msgflags, string $payload, string $key = null)
+    {
+        $topic->produce($partition, $msgflags, $payload);
+        $product->poll(0);
+        $product->flush(1000);
     }
 }
