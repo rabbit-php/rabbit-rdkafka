@@ -3,7 +3,7 @@
   "description": "rabbit rdkafka",
   "type": "library",
   "require": {
-    "rabbit/framework": "dev-master"
+    "rabbit/framework": "^1.0"
   },
   "license": "MIT",
   "authors": [
