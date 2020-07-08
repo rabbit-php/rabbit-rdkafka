@@ -3,7 +3,14 @@
   "description": "rabbit rdkafka",
   "type": "library",
   "require": {
-    "rabbit/framework": "^1.0"
+    "php": ">=7.4.0",
+    "ext-swoole": ">=4.5.0",
+    "rabbit/base": "dev-master"
+  },
+  "require-dev": {
+    "kwn/php-rdkafka-stubs": "^2.0",
+    "swoole/ide-helper": "@dev",
+    "phpunit/phpunit": "*"
   },
   "license": "MIT",
   "authors": [

@@ -4,14 +4,14 @@ declare(strict_types=1);
 namespace Rabbit\Rdkafka;
 
 use Psr\Log\LoggerInterface;
-use rabbit\contract\InitInterface;
-use rabbit\exception\InvalidArgumentException;
-use rabbit\exception\InvalidConfigException;
-use rabbit\helper\ArrayHelper;
-use rabbit\helper\UrlHelper;
+use Rabbit\Base\Contract\InitInterface;
+use Rabbit\Base\Exception\InvalidArgumentException;
+use Rabbit\Base\Exception\InvalidConfigException;
+use Rabbit\Base\Helper\ArrayHelper;
 use RdKafka\Conf;
 use RdKafka\Consumer;
 use RdKafka\ConsumerTopic;
+use RdKafka\Exception;
 use RdKafka\KafkaConsumer;
 use RdKafka\Producer;
 use RdKafka\ProducerTopic;
@@ -25,11 +25,11 @@ use RdKafka\TopicConf;
 class KafkaManager implements InitInterface
 {
     /** @var array */
-    protected $producers = [];
+    protected array $producers = [];
     /** @var array */
-    protected $consumers = [];
+    protected array $consumers = [];
     /** @var array */
-    protected $kafkaConsumers = [];
+    protected array $kafkaConsumers = [];
     /** @var array */
     const LOG_LEVEL = [
         0 => 'emergency',
@@ -46,7 +46,7 @@ class KafkaManager implements InitInterface
     const ITEM_ENGINE = 'engine';
     const ITEM_TOPICS = 'topics';
     /** @var array */
-    protected $configs = [];
+    protected array $configs = [];
 
     /**
      * KafkaManager constructor.
@@ -70,6 +70,10 @@ class KafkaManager implements InitInterface
         });
     }
 
+    /**
+     * @return mixed|void
+     * @throws InvalidConfigException
+     */
     public function init()
     {
         $this->makeKafka($this->configs);
@@ -124,19 +128,19 @@ class KafkaManager implements InitInterface
         if (isset($this->consumers[$name])) {
             throw new InvalidArgumentException("The $name already exists");
         }
-        $this->consumers[$name] = $producer;
+        $this->consumers[$name] = $consumer;
     }
 
     /**
      * @param string $name
-     * @param Consumer $consumer
+     * @param KafkaConsumer $consumer
      */
     public function setKafkaConsumer(string $name, KafkaConsumer $consumer): void
     {
         if (isset($this->kafkaConsumers[$name])) {
             throw new InvalidArgumentException("The $name already exists");
         }
-        $this->kafkaConsumers[$name] = $producer;
+        $this->kafkaConsumers[$name] = $consumer;
     }
 
     /**
@@ -173,7 +177,7 @@ class KafkaManager implements InitInterface
     }
 
     /**
-     * @param array $config
+     * @param array $configs
      * @throws InvalidConfigException
      */
     public function makeKafka(array $configs): void
@@ -262,8 +266,8 @@ class KafkaManager implements InitInterface
     /**
      * @param KafkaConsumer $consumer
      * @param callable $callback
-     * @param float $sleep
-     * @throws \RdKafka\Exception
+     * @param float $sleepMs
+     * @throws Exception
      */
     public function consumeWithKafkaConsumer(KafkaConsumer $consumer, callable $callback, float $sleepMs = 200)
     {
@@ -280,7 +284,7 @@ class KafkaManager implements InitInterface
                         \Co::sleep((float)$sleepMs / 1000);
                         break;
                     default:
-                        throw new \Exception($message->errstr(), $message->err);
+                        throw new Exception($message->errstr(), $message->err);
                         break;
                 }
             }
@@ -288,16 +292,16 @@ class KafkaManager implements InitInterface
     }
 
     /**
-     * @param string $name
-     * @param string $topic
+     * @param ProducerTopic $topic
+     * @param Producer $producer
      * @param int $partition
      * @param int $msgflags
      * @param string $payload
      * @param string|null $key
      */
-    public function product(Topic $topic, Producer $producer, int $partition, int $msgflags, string $payload, string $key = null)
+    public function product(ProducerTopic $topic, Producer $producer, int $partition, int $msgflags, string $payload, string $key = null)
     {
-        $topic->produce($partition, $msgflags, $payload);
+        $topic->produce($partition, $msgflags, $payload, $key);
         $producer->poll(0);
         $producer->flush(1000);
     }
