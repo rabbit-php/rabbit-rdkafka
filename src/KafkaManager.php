@@ -75,7 +75,7 @@ class KafkaManager implements InitInterface
      * @return mixed|void
      * @throws InvalidConfigException
      */
-    public function init()
+    public function init(): void
     {
         $this->makeKafka($this->configs);
     }
