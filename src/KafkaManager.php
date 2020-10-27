@@ -1,23 +1,24 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Rabbit\Rdkafka;
 
-use Psr\Log\LoggerInterface;
-use Rabbit\Base\Contract\InitInterface;
-use Rabbit\Base\Exception\InvalidArgumentException;
-use Rabbit\Base\Exception\InvalidConfigException;
-use Rabbit\Base\Helper\ArrayHelper;
-use Rabbit\Base\Helper\UrlHelper;
 use RdKafka\Conf;
-use RdKafka\Consumer;
-use RdKafka\ConsumerTopic;
-use RdKafka\Exception;
-use RdKafka\KafkaConsumer;
-use RdKafka\Producer;
-use RdKafka\ProducerTopic;
 use RdKafka\Topic;
+use RdKafka\Consumer;
+use RdKafka\Producer;
+use RdKafka\Exception;
 use RdKafka\TopicConf;
+use RdKafka\ConsumerTopic;
+use RdKafka\KafkaConsumer;
+use RdKafka\ProducerTopic;
+use Psr\Log\LoggerInterface;
+use Rabbit\Base\Helper\UrlHelper;
+use Rabbit\Base\Helper\ArrayHelper;
+use Rabbit\Base\Contract\InitInterface;
+use Rabbit\Base\Exception\InvalidConfigException;
+use Rabbit\Base\Exception\InvalidArgumentException;
 
 /**
  * Class Manager
@@ -282,7 +283,7 @@ class KafkaManager implements InitInterface
                         break;
                     case RD_KAFKA_RESP_ERR__PARTITION_EOF:
                     case RD_KAFKA_RESP_ERR__TIMED_OUT:
-                        \Co::sleep((float)$sleepMs / 1000);
+                        usleep($sleepMs * 1000);
                         break;
                     default:
                         throw new Exception($message->errstr(), $message->err);
