@@ -90,13 +90,23 @@ class RdKafkaTarget extends AbstractTarget
                             $log[$name] = trim($value);
                     }
                 }
+                $this->channel->push(json_encode($log));
+            }
+        }
+    }
+
+    public function write(): void
+    {
+        loop(function () {
+            $logs = $this->getLogs();
+            if (!empty($logs)) {
                 /** @var KafkaManager $kafka */
                 $kafka = getDI($this->key);
                 $kafka->product($kafka->getProducerTopic($this->producer, $this->topic, [
                     'acks' => $this->ack,
                     'auto.commit.interval.ms' => $this->autoCommit
-                ]), $kafka->getProducer($this->producer), RD_KAFKA_PARTITION_UA, 0, json_encode($log));
+                ]), $kafka->getProducer($this->producer), RD_KAFKA_PARTITION_UA, 0, implode(',', $logs));
             }
-        }
+        });
     }
 }
